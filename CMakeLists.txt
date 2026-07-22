@@ -41,7 +41,7 @@ endif()
 set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES})
 target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
