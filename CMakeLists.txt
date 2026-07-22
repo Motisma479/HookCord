@@ -44,6 +44,8 @@ include_directories("Headers")
 set(PRECOMPILED_HEADER "Headers/pch.hpp")
 set(SOURCES
     "Sources/main.cpp"
+    "Sources/App.cpp"
+    "Sources/Data.cpp"
 )
 
 if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
