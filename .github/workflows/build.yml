@@ -1,0 +1,88 @@
+name: Cross-Platform Build
+
+on:
+  push:
+    branches: [ "Dev" ]
+  pull_request:
+    branches: [ "master" ]
+    
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            generator: "Unix Makefiles"
+
+          - os: ubuntu-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            generator: "Unix Makefiles"
+
+          - os: macos-latest
+            build_type: Release
+            c_compiler: clang
+            cpp_compiler: clang++
+            generator: "Unix Makefiles"
+            
+          - os: windows-latest
+            build_type: Release
+            generator: "Visual Studio 17 2022"
+            arch: x64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Set build directory
+      id: vars
+      shell: bash
+      run: echo "BUILD_DIR=${{ github.workspace }}/build" >> "$GITHUB_ENV"
+  
+    - name: Configure CMake
+      shell: bash
+      run: |
+        cmake -B "$BUILD_DIR" \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          ${{ matrix.c_compiler && format('-DCMAKE_C_COMPILER={0}', matrix.c_compiler) || '' }} \
+          ${{ matrix.cpp_compiler && format('-DCMAKE_CXX_COMPILER={0}', matrix.cpp_compiler) || '' }} \
+          -G "${{ matrix.generator }}" \
+          ${{ matrix.arch && format('-A {0}', matrix.arch) || '' }} \
+          -S "${{ github.workspace }}"
+
+    - name: Build
+      shell: bash
+      run: |
+        cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }}
+
+    - name: Run Tests
+      shell: bash
+      run: |
+        ctest --test-dir "$BUILD_DIR" --output-on-failure -C ${{ matrix.build_type }}
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: build_${{ matrix.os }}_${{ matrix.c_compiler }}_${{ github.sha }}
+        path: build/
+
+
+
+
+
+
+
+
+
+
+

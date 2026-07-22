@@ -1,0 +1,180 @@
+﻿name: Cross-Platform Manual Build
+
+permissions:
+  contents: write
+  
+on:
+  workflow_dispatch:
+    inputs:
+        buildType:
+          description: 'Build Type'
+          required: true
+          default: 'Debug'
+          type: choice
+          options:
+          - Debug
+          - Release
+          - RelWithDebInfo
+          - MinSizeRel
+        release:
+          description: 'Create Release'
+          required: false
+          type: boolean
+        version:
+          description: 'Version'
+          required: false
+          type: string
+jobs:
+  pre-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log the Inputs
+        run: |
+          echo "Build Type: $BUILDTYPE"
+          echo "Release: $RELEASE"
+          echo "Version: $VERSION"
+        env:
+          BUILDTYPE: ${{ inputs.buildType }}
+          RELEASE: ${{ inputs.release }}
+          VERSION: ${{ inputs.version }}
+
+      - name: Configure
+        if: inputs.release == true
+        run: |
+          git config --global user.email ${{ secrets.ACTION_MAIL }}
+          git config --global user.name ${{ secrets.ACTION_USERNAME }}
+            
+      - name: Checkout
+        if: inputs.release == true
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+    
+      - name: Update version in CMakeLists.txt
+        if: inputs.release == true
+        run: |
+          sed 's/CPP_TEMPLATE_VERSION="[^"]*"/CPP_TEMPLATE_VERSION="${{ inputs.version }}"/' -i CMakeLists.txt
+      
+      - name: Push
+        if: inputs.release == true
+        run: |
+          git add CMakeLists.txt
+          echo "commit message: ""[Workflow] Update tool version to v${{ inputs.version }}."""
+          git commit -m "[Workflow] Update tool version to v${{ inputs.version }}"
+          git push
+          
+  build:
+    needs: pre-build
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-latest
+            build_type: ${{ inputs.buildType }}
+            c_compiler: gcc
+            cpp_compiler: g++
+            generator: "Unix Makefiles"
+
+          - os: ubuntu-latest
+            build_type: ${{ inputs.buildType }}
+            c_compiler: clang
+            cpp_compiler: clang++
+            generator: "Unix Makefiles"
+
+          - os: macos-latest
+            build_type: ${{ inputs.buildType }}
+            c_compiler: clang
+            cpp_compiler: clang++
+            generator: "Unix Makefiles"
+            
+          - os: windows-latest
+            build_type: ${{ inputs.buildType }}
+            generator: "Visual Studio 17 2022"
+            arch: x64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Set build directory
+      id: vars
+      shell: bash
+      run: echo "BUILD_DIR=${{ github.workspace }}/build" >> "$GITHUB_ENV"
+  
+    - name: Configure CMake
+      shell: bash
+      run: |
+        cmake -B "$BUILD_DIR" \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          ${{ matrix.c_compiler && format('-DCMAKE_C_COMPILER={0}', matrix.c_compiler) || '' }} \
+          ${{ matrix.cpp_compiler && format('-DCMAKE_CXX_COMPILER={0}', matrix.cpp_compiler) || '' }} \
+          -G "${{ matrix.generator }}" \
+          ${{ matrix.arch && format('-A {0}', matrix.arch) || '' }} \
+          -S "${{ github.workspace }}"
+
+    - name: Build
+      shell: bash
+      run: |
+        cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }}
+
+    - name: Run Tests
+      shell: bash
+      run: |
+        ctest --test-dir "$BUILD_DIR" --output-on-failure -C ${{ matrix.build_type }}
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: build_${{ matrix.os }}_${{ matrix.c_compiler }}_${{ github.sha }}
+        path: build/
+
+  post-build:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        if: inputs.release == true
+        uses: actions/download-artifact@v7.0.0
+        with:
+          path: ${{github.workspace}}/artifacts/
+           
+      - name: Rename artifacts
+        if: inputs.release == true
+        run: |
+          VERSION="${{ inputs.version }}"
+          HASH="${{ github.sha }}"
+          for f in ${{github.workspace}}/artifacts/*; do
+            new="${f//$HASH/$VERSION}"
+            echo "Renaming $f → $new"
+            mv -- "$f" "$new"
+          done
+          
+      - name: Install zip
+        if: inputs.release == true
+        uses: montudor/action-zip@v1
+
+      - name: Zip artifacts
+        if: inputs.release == true
+        run: |
+          cd ${{github.workspace}}/artifacts/
+          for f in *; do
+              cd "$f"
+              zip -r "../$f.zip" .
+              cd ..
+          done
+      
+      - name: Create Release
+        if: inputs.release == true
+        uses: softprops/action-gh-release@v2.5.0
+        with:
+          name: v${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
+          files: ${{github.workspace}}/artifacts/*.zip
+
+
+
