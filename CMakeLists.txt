@@ -1,8 +1,25 @@
 cmake_minimum_required(VERSION 3.8)
-set (CMAKE_CXX_STANDARD 20)
-add_compile_definitions(CPP_TEMPLATE_VERSION="0.0.0") # Remember to also change it in the code and workflow
+project(HookCord)
 
-project(CPP_Template)
+set (CMAKE_CXX_STANDARD 20)
+add_compile_definitions(HOOKCORD_VERSION="0.0.0") # Remember to also change it in the code and workflow
+
+#--GLFW---------------------------------------------------------------
+set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
+set( GLFW_INSTALL OFF CACHE BOOL  "GLFW lib only" )
+add_subdirectory( "Externals/GLFW" )
+#--IMGUI--------------------------------------------------------------
+include_directories( "Externals/IMGUI" )
+set(EXTERNALS
+    "Externals/IMGUI/imgui.cpp"
+    "Externals/IMGUI/imgui_demo.cpp"
+    "Externals/IMGUI/imgui_draw.cpp"
+    "Externals/IMGUI/imgui_tables.cpp"
+    "Externals/IMGUI/imgui_widgets.cpp"
+    "Externals/IMGUI/backends/imgui_impl_opengl3.cpp"
+    "Externals/IMGUI/backends/imgui_impl_glfw.cpp"
+)
+#----------------------------------------------------------------------
 
 include_directories("Headers")
 
@@ -11,6 +28,24 @@ set(SOURCES
     "Sources/main.cpp"
 )
 
+if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+    # Disable console for Window application
+    if( MSVC )
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
+    else()
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
+    endif()
+endif()
+
+#add flags to make the executable static
+set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
+
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  "Externals/GLAD/include"
+)

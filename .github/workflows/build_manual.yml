@@ -53,7 +53,7 @@ jobs:
       - name: Update version in CMakeLists.txt
         if: inputs.release == true
         run: |
-          sed 's/CPP_TEMPLATE_VERSION="[^"]*"/CPP_TEMPLATE_VERSION="${{ inputs.version }}"/' -i CMakeLists.txt
+          sed 's/HOOKCORD_VERSION="[^"]*"/HOOKCORD_VERSION="${{ inputs.version }}"/' -i CMakeLists.txt
       
       - name: Push
         if: inputs.release == true
