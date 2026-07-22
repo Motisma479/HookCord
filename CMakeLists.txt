@@ -24,6 +24,7 @@ set(EXTERNALS
     "Externals/IMGUI/imgui_widgets.cpp"
     "Externals/IMGUI/backends/imgui_impl_opengl3.cpp"
     "Externals/IMGUI/backends/imgui_impl_glfw.cpp"
+    "Externals/IMGUI/misc/cpp/imgui_stdlib.cpp"
 )
 #----------------------------------------------------------------------
 
