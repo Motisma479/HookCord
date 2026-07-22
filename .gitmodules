@@ -7,3 +7,6 @@
 [submodule "Externals/GLAD"]
 	path = Externals/GLAD
 	url = https://github.com/Dav1dde/glad.git
+[submodule "Externals/CURL"]
+	path = Externals/CURL
+	url = https://github.com/curl/curl.git

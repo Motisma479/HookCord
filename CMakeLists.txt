@@ -14,6 +14,17 @@ glad_add_library(glad_gl STATIC
     REPRODUCIBLE
     API gl:core=4.6   # change version if needed
 )
+#--CURL---------------------------------------------------------------
+if(WIN32)
+    set(CURL_USE_SCHANNEL ON CACHE INTERNAL "Utiliser le SSL natif de Windows")
+else()
+    set(CURL_USE_OPENSSL ON CACHE INTERNAL "Utiliser OpenSSL")
+endif()
+set(HTTP_ONLY ON CACHE INTERNAL "Activer uniquement le protocole HTTP") 
+set(BUILD_CURL_EXE OFF CACHE INTERNAL "Désactiver l'exécutable curl")
+set(BUILD_TESTING OFF CACHE INTERNAL "Désactiver les tests cURL")
+set(CURL_DISABLE_LDAP ON CACHE INTERNAL "Désactiver le support LDAP")
+add_subdirectory( "Externals/CURL" )
 #--IMGUI--------------------------------------------------------------
 include_directories( "Externals/IMGUI" )
 set(EXTERNALS
@@ -39,6 +50,7 @@ if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     # Disable console for Window application
     if( MSVC )
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
+        target_compile_definitions(${PROJECT_NAME} PRIVATE CURL_STATICLIB)
     else()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
     endif()
@@ -49,7 +61,7 @@ set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 
 add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES})
-target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl)
+target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl libcurl_static)
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
 
