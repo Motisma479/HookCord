@@ -8,6 +8,12 @@ add_compile_definitions(HOOKCORD_VERSION="0.0.0") # Remember to also change it i
 set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
 set( GLFW_INSTALL OFF CACHE BOOL  "GLFW lib only" )
 add_subdirectory( "Externals/GLFW" )
+#--GLAD---------------------------------------------------------------
+add_subdirectory( "Externals/GLAD/cmake" )
+glad_add_library(glad_gl STATIC
+    REPRODUCIBLE
+    API gl:core=4.6   # change version if needed
+)
 #--IMGUI--------------------------------------------------------------
 include_directories( "Externals/IMGUI" )
 set(EXTERNALS
@@ -42,7 +48,7 @@ set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 
 add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES})
-target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw )
+target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl)
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
 
