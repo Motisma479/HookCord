@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(HookCord)
 
 set (CMAKE_CXX_STANDARD 20)
-add_compile_definitions(HOOKCORD_VERSION="0.0.0") # Remember to also change it in the code and workflow
+add_compile_definitions(HOOKCORD_VERSION="1.0.0") # Remember to also change it in the code and workflow
 
 #--GLFW---------------------------------------------------------------
 set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
