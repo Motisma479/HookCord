@@ -16,14 +16,29 @@ glad_add_library(glad_gl STATIC
 )
 #--CURL---------------------------------------------------------------
 if(WIN32)
-    set(CURL_USE_SCHANNEL ON CACHE INTERNAL "Utiliser le SSL natif de Windows")
+    set(CURL_USE_SCHANNEL ON CACHE INTERNAL "")
 else()
-    set(CURL_USE_OPENSSL ON CACHE INTERNAL "Utiliser OpenSSL")
+    set(CURL_USE_OPENSSL ON CACHE INTERNAL "")
 endif()
-set(HTTP_ONLY ON CACHE INTERNAL "Activer uniquement le protocole HTTP") 
-set(BUILD_CURL_EXE OFF CACHE INTERNAL "Désactiver l'exécutable curl")
-set(BUILD_TESTING OFF CACHE INTERNAL "Désactiver les tests cURL")
-set(CURL_DISABLE_LDAP ON CACHE INTERNAL "Désactiver le support LDAP")
+
+set(HTTP_ONLY ON CACHE INTERNAL "") 
+
+set(BUILD_CURL_EXE OFF CACHE INTERNAL "")
+set(BUILD_TESTING OFF CACHE INTERNAL "")
+
+set(CURL_DISABLE_LDAP ON CACHE INTERNAL "")
+set(CURL_DISABLE_LDAPS ON CACHE INTERNAL "")
+
+set(CURL_USE_LIBSSH2 OFF CACHE INTERNAL "")
+set(USE_LIBIDN2 OFF CACHE INTERNAL "")
+set(CURL_USE_LIBPSL OFF CACHE INTERNAL "")
+
+set(CURL_ZLIB OFF CACHE INTERNAL "")
+set(CURL_BROTLI OFF CACHE INTERNAL "")
+set(CURL_ZSTD OFF CACHE INTERNAL "")
+
+set(USE_NGHTTP2 OFF CACHE INTERNAL "")
+
 add_subdirectory( "Externals/CURL" )
 #--IMGUI--------------------------------------------------------------
 include_directories( "Externals/IMGUI" )
@@ -52,7 +67,6 @@ if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
     # Disable console for Window application
     if( MSVC )
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
-        target_compile_definitions(${PROJECT_NAME} PRIVATE CURL_STATICLIB)
     else()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
     endif()
@@ -64,6 +78,8 @@ set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 
 add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES})
 target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl libcurl_static)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE CURL_STATICLIB)
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
 
