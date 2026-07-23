@@ -63,15 +63,6 @@ set(SOURCES
     "Sources/Data.cpp"
 )
 
-if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
-    # Disable console for Window application
-    if( MSVC )
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
-    else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
-    endif()
-endif()
-
 #add flags to make the executable static
 set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
@@ -85,4 +76,9 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   "Externals/GLAD/include"
+)
+
+target_link_options(${PROJECT_NAME} PRIVATE
+    $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<CONFIG:Debug>>>:/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup>
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<CONFIG:Debug>>>:-mwindows>
 )

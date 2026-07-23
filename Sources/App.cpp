@@ -39,9 +39,11 @@ App::App(const char* name, size_t width, size_t height, bool canResize)
 	}
 
     ImGui::CreateContext();
-	ImGuiIO* guiIO = &ImGui::GetIO();
-	guiIO->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	guiIO->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	ImGuiIO& guiIO = ImGui::GetIO();
+	guiIO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+    guiIO.IniFilename = NULL;
+    guiIO.IniSavingRate = NULL;
+    guiIO.LogFilename = NULL;
 
 	ImGui::StyleColorsDark();
 
@@ -68,7 +70,6 @@ App::~App()
 
 void App::Update()
 {
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollWithMouse;
     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
@@ -77,7 +78,7 @@ void App::Update()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-        
+        const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollWithMouse;
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
