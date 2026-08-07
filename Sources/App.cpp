@@ -67,7 +67,7 @@ App::~App()
 
     data.Save();
 }
-
+bool a;
 void App::Update()
 {
     while (!glfwWindowShouldClose(window))
@@ -90,6 +90,16 @@ void App::Update()
 			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("Close", "Alt+f4"))  { glfwSetWindowShouldClose(window, true); }
+				ImGui::EndMenu();
+			}
+            if (ImGui::BeginMenu("Settings"))
+			{
+                if (ImGui::Checkbox("Auto Start",&a)) {std::cout << "autostart\n";}
+                if(ImGui::BeginItemTooltip())
+                {
+                    ImGui::Text("Only check this option if the app is at a static location");
+                    ImGui::EndTooltip();
+                }
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
@@ -146,8 +156,9 @@ void App::OnSendPress()
 {
     curl = curl_easy_init();
     if(curl) {
-        
+        SanitizeMessage();
         std::string json = "{\n   \"username\": \"" + data.username + "\",\n   \"avatar_url\": \"" + data.imageURL + "\",\n   \"content\": \"" + data.message + "\",\n   \"allowed_mentions\": {\"parse\":[\"everyone\", \"roles\", \"users\"]}\n}";
+        std::cout << json << std::endl;
         curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, "http");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_URL, data.webhookURL.c_str());
@@ -162,4 +173,27 @@ void App::OnSendPress()
     }
     data.message.clear();
     data.shouldSave = true;
+}
+
+void App::SanitizeMessage()
+{
+    std::string sanitizedMessage;
+    sanitizedMessage.reserve(data.message.size());
+    for(int i = 0; i < data.message.size(); ++i)
+    {
+        char current = data.message[i]; 
+        switch (current)
+        {
+        case '\n':
+            sanitizedMessage += "\\n";
+            break;
+        case '\\':
+            sanitizedMessage += "\\\\";
+            break;
+        default:
+            sanitizedMessage+=current;
+            break;
+        }
+    }
+    data.message = sanitizedMessage;
 }

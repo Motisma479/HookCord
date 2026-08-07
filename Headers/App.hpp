@@ -9,6 +9,7 @@ public:
 
     void Update();
     void OnSendPress();
+    void SanitizeMessage();
 private:
     Data data;
 

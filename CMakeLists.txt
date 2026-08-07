@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(HookCord)
+project(HookCord LANGUAGES CXX)
 
 set (CMAKE_CXX_STANDARD 20)
 add_compile_definitions(HOOKCORD_VERSION="1.0.0") # Remember to also change it in the code and workflow
