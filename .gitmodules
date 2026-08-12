@@ -10,3 +10,6 @@
 [submodule "Externals/CURL"]
 	path = Externals/CURL
 	url = https://github.com/curl/curl.git
+[submodule "Externals/JSON_CPP"]
+	path = Externals/JSON_CPP
+	url = https://github.com/Motisma479/JSON_CPP.git
