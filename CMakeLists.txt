@@ -3,6 +3,7 @@ project(HookCord LANGUAGES CXX)
 
 set (CMAKE_CXX_STANDARD 20)
 add_compile_definitions(HOOKCORD_VERSION="1.0.0") # Remember to also change it in the code and workflow
+add_compile_definitions(APP_NAME="HookCord")
 
 #--GLFW---------------------------------------------------------------
 set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
@@ -65,11 +66,22 @@ set(SOURCES
     "Sources/Data.cpp"
 )
 
+set(PLATFORM_SOURCES)
+if(WIN32)
+    set(PLATFORM_SOURCES
+        "Sources/Platforms/Windows/Utils.cpp"
+    )
+else()
+    set(PLATFORM_SOURCES
+        "Sources/Platforms/Linux/Utils.cpp"
+    )
+endif()
+
 #add flags to make the executable static
 set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
 
-add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES})
+add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES} ${PLATFORM_SOURCES})
 target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl libcurl_static)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CURL_STATICLIB)

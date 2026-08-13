@@ -8,7 +8,7 @@ public:
 	bool useMCImage          = true;
     bool tts                 = false;
     bool editMessage         = false;
-    
+
     std::string webhookURL   = "";
     std::string username     = "";
 	std::string imageURL     = "";
@@ -19,4 +19,5 @@ public:
     void Load();
     void Save();
     bool shouldSave        = false;
+    bool isAutoStart         = false;
 };

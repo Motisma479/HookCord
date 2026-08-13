@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "App.hpp"
+#include "Utils.hpp"
 
 #include <glad/gl.h>
 
@@ -13,6 +14,7 @@
 App::App(const char* name, int width, int height, bool canResize)
 {
     data.Load();
+    data.isAutoStart = IsAutoStartEnable();
 
     //Network
     result = curl_global_init(CURL_GLOBAL_ALL);
@@ -69,7 +71,6 @@ App::~App()
 
     data.Save();
 }
-bool a;
 void App::Update()
 {
     while (!glfwWindowShouldClose(window))
@@ -96,7 +97,7 @@ void App::Update()
 			}
             if (ImGui::BeginMenu("Settings"))
 			{
-                if (ImGui::Checkbox("Auto Start",&a)) {std::cout << "autostart\n";}
+                if (ImGui::Checkbox("Auto Start",&data.isAutoStart)) {ToggleAutoStart(data.isAutoStart);}
                 if(ImGui::BeginItemTooltip())
                 {
                     ImGui::Text("Only check this option if the app is at a static location");
