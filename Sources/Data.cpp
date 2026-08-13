@@ -30,12 +30,14 @@ void Data::Load()
     webhookURL = temp;
     delete temp;
     
+    data.read(reinterpret_cast<char*>(&specifyName), sizeof specifyName);
     temp = new char[usernameLength+1];
     data.read(temp, usernameLength);
     temp[usernameLength] = '\0';
     username = temp;
     delete temp;
 
+    data.read(reinterpret_cast<char*>(&specifyImage), sizeof specifyImage);
     data.read(reinterpret_cast<char*>(&useMCImage), sizeof useMCImage);
     
     temp = new char[imageURLLength+1];
@@ -67,11 +69,14 @@ void Data::Save()
 
 
     data.write(webhookURL.data(), webhookURL.size());
-    data.write(username.data(), username.size());
 
-    data.write(reinterpret_cast<char*>(&useMCImage), sizeof useMCImage);
+    data.write(reinterpret_cast<char*>(&specifyName), sizeof specifyName);
+    data.write(username.data(), username.size());
     
+    data.write(reinterpret_cast<char*>(&specifyImage), sizeof specifyImage);
+    data.write(reinterpret_cast<char*>(&useMCImage), sizeof useMCImage);
     data.write(imageURL.data(), imageURL.size());
+    
     data.write(message.data(), message.size());
 
 }

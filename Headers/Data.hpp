@@ -4,7 +4,9 @@ class Data
 {
 public:
     std::string webhookURL = "";
-	std::string username   = "";
+	bool specifyName = true;
+    std::string username   = "";
+	bool specifyImage = true;
 	bool useMCImage        = true;
 	std::string imageURL    = "";
 	std::string message    = "";

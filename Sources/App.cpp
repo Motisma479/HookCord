@@ -8,6 +8,8 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <misc/cpp/imgui_stdlib.h>
 
+#include <JSON_CPP.hpp>
+
 App::App(const char* name, size_t width, size_t height, bool canResize)
 {
     data.Load();
@@ -112,24 +114,39 @@ void App::Update()
 		
         ImGui::Separator();
 
-        ImGui::Text("Username:");
-		ImGui::SameLine(100);
-		if(ImGui::InputText("##usernameBox", &data.username))
-            data.shouldSave = true;
-		
-        if(ImGui::Checkbox("Use minecraft image", &data.useMCImage))
+        if(ImGui::Checkbox("Specify name?", &data.specifyName))
         {
-            data.imageURL.clear();
             data.shouldSave = true;
         }
-        if(!data.useMCImage)
+        if(data.specifyName)
         {
-            ImGui::Text("Image URL:");
+            ImGui::Text("Username:");
             ImGui::SameLine(100);
-            if(ImGui::InputText("##imageURLBox", &data.imageURL)) 		    
+            if(ImGui::InputText("##usernameBox", &data.username))
+            data.shouldSave = true;
+        }
+		
+        if(ImGui::Checkbox("Specify image?", &data.specifyImage))
+        {
+            data.shouldSave = true;
+        }
+
+        if(data.specifyImage)
+        {
+            if(ImGui::Checkbox("Use minecraft image", &data.useMCImage))
+            {
+                data.imageURL.clear();
                 data.shouldSave = true;
-        } else {
-            data.imageURL = "https://mc-api.io/render/face/" + data.username + "/java?size=1024";
+            }
+            if(!data.useMCImage)
+            {
+                ImGui::Text("Image URL:");
+                ImGui::SameLine(100);
+                if(ImGui::InputText("##imageURLBox", &data.imageURL)) 		    
+                    data.shouldSave = true;
+            } else {
+                data.imageURL = "https://mc-api.io/render/face/" + data.username + "/java?size=1024";
+            }
         }
 		
         ImGui::Separator();
@@ -151,24 +168,53 @@ void App::Update()
         glfwSwapBuffers(window);
     }
 }
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
+{
+    size_t totalSize = size * nmemb;
 
+    std::string* response = static_cast<std::string*>(userp);
+    response->append(static_cast<char*>(contents), totalSize);
+
+    return totalSize;
+}
 void App::OnSendPress()
 {
     curl = curl_easy_init();
     if(curl) {
         SanitizeMessage();
-        std::string json = "{\n   \"username\": \"" + data.username + "\",\n   \"avatar_url\": \"" + data.imageURL + "\",\n   \"content\": \"" + data.message + "\",\n   \"allowed_mentions\": {\"parse\":[\"everyone\", \"roles\", \"users\"]}\n}";
+        JSON json;
+        json["content"] = data.message;
+        if(data.specifyName) json["username"] = data.username;
+        if(data.specifyImage) json["avatar_url"] = data.imageURL;
+        json["allowed_mentions"]["parse"] = JSON::array("everyone", "roles", "users");
+
         std::cout << json << std::endl;
         curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, "http");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_URL, data.webhookURL.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json.c_str());
+        std::string body = json.ToString(false);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
     
+        std::string response;
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+
         result = curl_easy_perform(curl);
     
         if(result != CURLE_OK)
             std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(result) << std::endl;
-    
+        else
+        {
+            long responseCode;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+
+            std::cout << "HTTP " << responseCode << '\n';
+            JSON responseJson;
+            responseJson.FromString(response);
+            std::cout << responseJson << std::endl;
+        }
+
         curl_easy_cleanup(curl);
     }
     data.message.clear();

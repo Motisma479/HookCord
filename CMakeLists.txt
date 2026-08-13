@@ -42,6 +42,7 @@ set(USE_NGHTTP2 OFF CACHE INTERNAL "")
 add_subdirectory( "Externals/CURL" )
 #--IMGUI--------------------------------------------------------------
 include_directories( "Externals/IMGUI" )
+include_directories( "Externals/JSON_CPP/JSON_CPP" )
 set(EXTERNALS
     "Externals/IMGUI/imgui.cpp"
     "Externals/IMGUI/imgui_demo.cpp"
@@ -51,6 +52,7 @@ set(EXTERNALS
     "Externals/IMGUI/backends/imgui_impl_opengl3.cpp"
     "Externals/IMGUI/backends/imgui_impl_glfw.cpp"
     "Externals/IMGUI/misc/cpp/imgui_stdlib.cpp"
+    "Externals/JSON_CPP/JSON_CPP/JSON_CPP.cpp"
 )
 #----------------------------------------------------------------------
 
