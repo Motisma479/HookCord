@@ -11,6 +11,9 @@ The tool is written in [![C++](https://img.shields.io/badge/v20-blue?style=flat&
 |:-:|:-:|
 |Window|[GLFW](https://github.com/glfw/glfw)|
 |GUI|[Dear ImGui](https://github.com/ocornut/imgui)|
+|OpenGL loader|[glad](https://github.com/Dav1dde/glad)|
+|JSON|[JSON_CPP](https://github.com/Motisma479/JSON_CPP)|
+|Requests|[curl](https://github.com/curl/curl)|
 
 ## 🔧 Getting the code
 
