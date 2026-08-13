@@ -14,43 +14,29 @@ void Data::Load()
     }
 
     std::ifstream data(pathToData, std::ios::binary);
-    std::size_t webhookURLLength;
-    std::size_t usernameLength;
-    std::size_t imageURLLength;
-    std::size_t messageLength;
+    std::size_t Lengths[6];
 
-    data.read(reinterpret_cast<char*>(&webhookURLLength), sizeof webhookURLLength);
-    data.read(reinterpret_cast<char*>(&usernameLength), sizeof usernameLength);
-    data.read(reinterpret_cast<char*>(&imageURLLength), sizeof imageURLLength);
-    data.read(reinterpret_cast<char*>(&messageLength), sizeof messageLength);
+    //read sizes
+    data.read(reinterpret_cast<char*>(&Lengths), sizeof(std::size_t) * 6);
 
-    char* temp = new char[webhookURLLength+1];
-    data.read(temp, webhookURLLength);
-    temp[webhookURLLength] = '\0';
-    webhookURL = temp;
-    delete temp;
-    
-    data.read(reinterpret_cast<char*>(&specifyName), sizeof specifyName);
-    temp = new char[usernameLength+1];
-    data.read(temp, usernameLength);
-    temp[usernameLength] = '\0';
-    username = temp;
-    delete temp;
+    //read bools
+    data.read(reinterpret_cast<char*>(&specifyName), sizeof(bool) * 5);
 
-    data.read(reinterpret_cast<char*>(&specifyImage), sizeof specifyImage);
-    data.read(reinterpret_cast<char*>(&useMCImage), sizeof useMCImage);
-    
-    temp = new char[imageURLLength+1];
-    data.read(temp, imageURLLength);
-    temp[imageURLLength] = '\0';
-    imageURL = temp;
-    delete temp;
-
-    temp = new char[messageLength+1];
-    data.read(temp, messageLength);
-    temp[messageLength] = '\0';
-    message = temp;
-    delete temp;
+    //read strings
+    auto ReadStr = [&](std::string& str, int id)
+    {
+        char* temp = new char[Lengths[id]+1];
+        data.read(temp, Lengths[id]);
+        temp[Lengths[id]] = '\0';
+        str = temp;
+        delete temp;
+    };
+    ReadStr(webhookURL, 0);
+    ReadStr(username, 1);
+    ReadStr(imageURL, 2);
+    ReadStr(message, 3);
+    ReadStr(idToEdit, 4);
+    ReadStr(preMessageId, 5);
 }
 
 void Data::Save()
@@ -58,6 +44,7 @@ void Data::Save()
     if(!shouldSave) return;
     
     std::ofstream data(std::filesystem::path(std::getenv("TEMP")) / "HookCord.bin", std::ios::binary);
+    //Save string sizes
     std::size_t temp = webhookURL.size();
     data.write(reinterpret_cast<char*>(&temp), sizeof temp);
     temp = username.size();
@@ -66,17 +53,23 @@ void Data::Save()
     data.write(reinterpret_cast<char*>(&temp), sizeof temp);
     temp = message.size();
     data.write(reinterpret_cast<char*>(&temp), sizeof temp);
+    temp = idToEdit.size();
+    data.write(reinterpret_cast<char*>(&temp), sizeof temp);
+    temp = preMessageId.size();
+    data.write(reinterpret_cast<char*>(&temp), sizeof temp);
 
-
-    data.write(webhookURL.data(), webhookURL.size());
-
+    //Save bools
     data.write(reinterpret_cast<char*>(&specifyName), sizeof specifyName);
-    data.write(username.data(), username.size());
-    
     data.write(reinterpret_cast<char*>(&specifyImage), sizeof specifyImage);
     data.write(reinterpret_cast<char*>(&useMCImage), sizeof useMCImage);
-    data.write(imageURL.data(), imageURL.size());
-    
-    data.write(message.data(), message.size());
+    data.write(reinterpret_cast<char*>(&tts), sizeof tts);
+    data.write(reinterpret_cast<char*>(&editMessage), sizeof editMessage);
 
+    //Save strings
+    data.write(webhookURL.data(), webhookURL.size());
+    data.write(username.data(), username.size());
+    data.write(imageURL.data(), imageURL.size());
+    data.write(message.data(), message.size());
+    data.write(idToEdit.data(), idToEdit.size());
+    data.write(preMessageId.data(), preMessageId.size());
 }

@@ -3,13 +3,18 @@
 class Data
 {
 public:
-    std::string webhookURL = "";
-	bool specifyName = true;
-    std::string username   = "";
-	bool specifyImage = true;
-	bool useMCImage        = true;
-	std::string imageURL    = "";
-	std::string message    = "";
+    bool specifyName         = true;
+	bool specifyImage        = true;
+	bool useMCImage          = true;
+    bool tts                 = false;
+    bool editMessage         = false;
+    
+    std::string webhookURL   = "";
+    std::string username     = "";
+	std::string imageURL     = "";
+	std::string message      = "";
+    std::string idToEdit     = "";
+    std::string preMessageId = "";
 
     void Load();
     void Save();
