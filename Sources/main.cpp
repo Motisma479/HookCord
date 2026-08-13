@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	//_CrtSetBreakAlloc(284);
 #endif
 
-	App app("HookCord", 450,400, false);
+	App app("HookCord", 460,410, false);
 	app.Update();
 
     return 0;

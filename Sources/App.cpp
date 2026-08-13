@@ -10,7 +10,7 @@
 
 #include <JSON_CPP.hpp>
 
-App::App(const char* name, size_t width, size_t height, bool canResize)
+App::App(const char* name, int width, int height, bool canResize)
 {
     data.Load();
 
@@ -150,8 +150,27 @@ void App::Update()
         }
 		
         ImGui::Separator();
+        if(ImGui::Checkbox("Edit?", &data.editMessage))
+            data.shouldSave = true;
+        if(data.editMessage)
+        {
+            ImGui::SameLine();
+            ImGui::Text("Message Id:");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(200);
+            if(ImGui::InputText("##MessageIdBox", &data.idToEdit))
+                data.shouldSave = true;
+        }
 
         ImGui::Text("Message:");
+        if(data.editMessage)
+        {
+            ImGui::SameLine();
+            if(ImGui::Button("Get Old Message"))
+            {
+                GetOldMessageForEdit();
+            }
+        }
 		if(ImGui::InputTextMultiline("##MessageBox", &data.message, {435, 135}))
             data.shouldSave = true;
 
@@ -159,7 +178,15 @@ void App::Update()
 		{
             OnSendPress();
 		}
+        ImGui::SameLine();
+        if(ImGui::Checkbox("TTS?", &data.tts))
+            data.shouldSave = true;
         
+        ImGui::Text("Previous Id:");
+		ImGui::SameLine();
+        ImGui::SetNextItemWidth(200);
+        ImGui::InputText("##PreMessageIdBox", &data.preMessageId, ImGuiInputTextFlags_ReadOnly);
+
 		ImGui::End();
 
         ImGui::Render();
@@ -184,14 +211,28 @@ void App::OnSendPress()
         SanitizeMessage();
         JSON json;
         json["content"] = data.message;
-        if(data.specifyName) json["username"] = data.username;
-        if(data.specifyImage) json["avatar_url"] = data.imageURL;
-        json["allowed_mentions"]["parse"] = JSON::array("everyone", "roles", "users");
+        if(!data.editMessage)
+        {
+            if(data.specifyName) json["username"] = data.username;
+            if(data.specifyImage) json["avatar_url"] = data.imageURL;
+            if(data.tts) json["tts"] = true;
+            json["allowed_mentions"]["parse"] = JSON::array("everyone", "roles", "users");
+        }
 
         std::cout << json << std::endl;
+        if(data.editMessage)
+            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+        else
+            curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
         curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, "http");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_URL, data.webhookURL.c_str());
+
+        std::string url = data.webhookURL + "?wait=true";
+        if(data.editMessage)
+            url = data.webhookURL + "/messages/" + data.idToEdit;
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        
         std::string body = json.ToString(false);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
     
@@ -213,11 +254,51 @@ void App::OnSendPress()
             JSON responseJson;
             responseJson.FromString(response);
             std::cout << responseJson << std::endl;
+
+            if(responseCode == 200)
+            {
+                data.preMessageId = responseJson["id"].operator std::string();
+            }
         }
 
         curl_easy_cleanup(curl);
     }
     data.message.clear();
+    data.shouldSave = true;
+}
+
+void App::GetOldMessageForEdit()
+{
+    curl = curl_easy_init();
+    if(!curl) return;
+    curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, "http");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    std::string url = data.webhookURL + "/messages/" + data.idToEdit;
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        
+    std::string response;
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+
+    result = curl_easy_perform(curl);
+    if(result != CURLE_OK)
+        std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(result) << std::endl;
+    else
+    {
+        long responseCode;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
+
+        std::cout << "HTTP " << responseCode << '\n';
+        JSON responseJson;
+        responseJson.FromString(response);
+        std::cout << responseJson << std::endl;
+        if(responseCode == 200)
+        {
+            data.message = responseJson["content"].operator std::string();
+        }
+    }
     data.shouldSave = true;
 }
 

@@ -4,11 +4,12 @@
 class App
 {
 public:
-    App(const char* name, size_t width, size_t height, bool canResize);
+    App(const char* name, int width, int height, bool canResize);
     ~App();
 
     void Update();
     void OnSendPress();
+    void GetOldMessageForEdit();
     void SanitizeMessage();
 private:
     Data data;
