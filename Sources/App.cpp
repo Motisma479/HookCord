@@ -46,7 +46,7 @@ App::App(const char* name, int width, int height, bool canResize)
 	ImGuiIO& guiIO = ImGui::GetIO();
 	guiIO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
     guiIO.IniFilename = NULL;
-    guiIO.IniSavingRate = NULL;
+    guiIO.IniSavingRate = 0.0;
     guiIO.LogFilename = NULL;
 
 	ImGui::StyleColorsDark();

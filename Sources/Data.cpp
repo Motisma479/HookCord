@@ -6,7 +6,7 @@
 
 void Data::Load()
 {
-    std::filesystem::path pathToData = std::filesystem::path(std::getenv("TEMP")) / "HookCord.bin";
+    std::filesystem::path pathToData = std::filesystem::temp_directory_path() / "HookCord.bin";
     if(!std::filesystem::exists(pathToData))
     {
         std::cout << "data does not exist\n";
@@ -29,7 +29,7 @@ void Data::Load()
         data.read(temp, Lengths[id]);
         temp[Lengths[id]] = '\0';
         str = temp;
-        delete temp;
+        delete[] temp;
     };
     ReadStr(webhookURL, 0);
     ReadStr(username, 1);
@@ -43,7 +43,7 @@ void Data::Save()
 {
     if(!shouldSave) return;
     
-    std::ofstream data(std::filesystem::path(std::getenv("TEMP")) / "HookCord.bin", std::ios::binary);
+    std::ofstream data(std::filesystem::temp_directory_path() / "HookCord.bin", std::ios::binary);
     //Save string sizes
     std::size_t temp = webhookURL.size();
     data.write(reinterpret_cast<char*>(&temp), sizeof temp);
