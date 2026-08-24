@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
-project(HookCord LANGUAGES CXX)
+project(HookCord LANGUAGES C CXX) #add C because of dependencies
 
 set (CMAKE_CXX_STANDARD 20)
-add_compile_definitions(HOOKCORD_VERSION="1.1.0") # Remember to also change it in the code and workflow
+add_compile_definitions(HOOKCORD_VERSION="1.1.0")
 add_compile_definitions(APP_NAME="HookCord")
 
 #--GLFW---------------------------------------------------------------
