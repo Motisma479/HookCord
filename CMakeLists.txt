@@ -77,10 +77,6 @@ else()
     )
 endif()
 
-#add flags to make the executable static
-set(FLAGS_LINKER "-static -static-libgcc -static-libstdc++")
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS_LINKER}")
-
 add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES} ${PLATFORM_SOURCES})
 target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl libcurl_static)
 
@@ -92,6 +88,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "Externals/GLAD/include"
 )
 
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -static
+        -static-libgcc
+        -static-libstdc++
+    )
+endif()
 target_link_options(${PROJECT_NAME} PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<CONFIG:Debug>>>:/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup>
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<CONFIG:Debug>>>:-mwindows>
