@@ -133,7 +133,10 @@ jobs:
     - name: Configure CMake
       shell: bash
       run: |
+        PYTHON_EXECUTABLE="$(python -c 'import sys; print(sys.executable)')"
+  
         cmake -B "$BUILD_DIR" \
+          -DPython_EXECUTABLE="$PYTHON_EXECUTABLE"
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           ${{ matrix.c_compiler && format('-DCMAKE_C_COMPILER={0}', matrix.c_compiler) || '' }} \
           ${{ matrix.cpp_compiler && format('-DCMAKE_CXX_COMPILER={0}', matrix.cpp_compiler) || '' }} \
