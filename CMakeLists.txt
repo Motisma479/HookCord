@@ -88,7 +88,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "Externals/GLAD/include"
 )
 
-if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_options(${PROJECT_NAME} PRIVATE
         -static
         -static-libgcc
@@ -97,5 +97,5 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 target_link_options(${PROJECT_NAME} PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<NOT:$<CONFIG:Debug>>>:/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup>
-    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<CONFIG:Debug>>>:-mwindows>
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,,$<WIN32>,$<NOT:$<CONFIG:Debug>>>:-mwindows>
 )
