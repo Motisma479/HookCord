@@ -22,8 +22,8 @@ App::App(const char* name, int width, int height, bool canResize)
 		throw std::runtime_error("cannot init network");
 	
     headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
-	
-	//Window
+
+    //Window
     if (!glfwInit())
 		throw std::runtime_error("cannot init window");
     if(!canResize)
@@ -34,6 +34,9 @@ App::App(const char* name, int width, int height, bool canResize)
         glfwTerminate();
     		throw std::runtime_error("cannot init window");
     }
+
+    SetIconOnWindow(window);
+
     glfwMakeContextCurrent(window);
 	if (!gladLoadGL(glfwGetProcAddress))
 	{
@@ -68,6 +71,8 @@ App::~App()
     //Clean window
 	glfwDestroyWindow(window);
     glfwTerminate();
+
+	curl_slist_free_all(headers);
 
     data.Save();
 }

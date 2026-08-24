@@ -1,10 +1,71 @@
 #include "pch.hpp"
 #include "Utils.hpp"
 #include <Windows.h>
+#include <vector>
 
 #define WIDEIMPL(x) L##x
 #define WIDE(x) WIDEIMPL(x)
 #define APP_NAME_WCHAR WIDE(APP_NAME)
+
+void SetIconOnWindow(GLFWwindow* window)
+{
+    HICON icon = static_cast<HICON>(LoadImageW(
+        GetModuleHandle(NULL),
+        L"IDI_ICON1",
+        IMAGE_ICON,
+        512,
+        512,
+        LR_DEFAULTCOLOR
+    ));
+    ICONINFO iconInfo{};
+    GetIconInfo(icon, &iconInfo);
+
+    BITMAP bitmap{};
+    GetObject(iconInfo.hbmColor, sizeof(bitmap), &bitmap);
+
+    const int icwidth = bitmap.bmWidth;
+    const int icheight = bitmap.bmHeight;
+
+    GLFWimage image{};
+    std::vector<unsigned char> pixels;
+    pixels.resize(icwidth * icheight * 4);
+
+    BITMAPINFO bmi{};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = icwidth;
+    bmi.bmiHeader.biHeight = -icheight; // top-down
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    HDC hdc = GetDC(nullptr);
+
+    GetDIBits(
+        hdc,
+        iconInfo.hbmColor,
+        0,
+        icheight,
+        pixels.data(),
+        &bmi,
+        DIB_RGB_COLORS
+    );
+
+    ReleaseDC(nullptr, hdc); 
+
+    // Windows gives us BGRA, GLFW wants RGBA.
+    for (size_t i = 0; i < pixels.size(); i += 4)
+        std::swap(pixels[i], pixels[i + 2]);
+
+    image.width = icwidth;
+    image.height = icheight;
+    image.pixels = pixels.data();
+
+    DeleteObject(iconInfo.hbmColor);
+    DeleteObject(iconInfo.hbmMask);
+
+    glfwSetWindowIcon(window, 1, &image);
+    DestroyIcon(icon);
+}
 
 bool ToggleAutoStart(bool state)
 {

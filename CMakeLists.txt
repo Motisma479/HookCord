@@ -1,9 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
-project(HookCord LANGUAGES C CXX) #add C because of dependencies
+project(HookCord LANGUAGES C CXX DESCRIPTION "A small tool to interact with discord webhook system." VERSION 1.1.0) #add C because of dependencies
+string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
+add_compile_definitions(APP_NAME="${PROJECT_NAME}")
 
 set (CMAKE_CXX_STANDARD 20)
-add_compile_definitions(HOOKCORD_VERSION="1.1.0")
-add_compile_definitions(APP_NAME="HookCord")
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/Headers/Core/Version.hpp.in
+    ${CMAKE_BINARY_DIR}/Generated/Headers/Core/Version.hpp
+    @ONLY
+)
 
 #--GLFW---------------------------------------------------------------
 set( GLFW_BUILD_DOCS OFF CACHE BOOL  "GLFW lib only" )
@@ -57,8 +64,6 @@ set(EXTERNALS
 )
 #----------------------------------------------------------------------
 
-include_directories("Headers")
-
 set(PRECOMPILED_HEADER "Headers/pch.hpp")
 set(SOURCES
     "Sources/main.cpp"
@@ -77,10 +82,29 @@ else()
     )
 endif()
 
+# app.rc
+if(WIN32)
+    string(TIMESTAMP CURRENT_YEAR "%Y")
+    set(PROJECT_AUTHOR "Motisma479")
+    configure_file(
+        ${CMAKE_SOURCE_DIR}/app.rc.in
+        ${CMAKE_BINARY_DIR}/Generated/app.rc
+        @ONLY
+    )
+
+    list(APPEND SOURCES "${CMAKE_BINARY_DIR}/Generated/app.rc")
+endif()
+
+
 add_executable(${PROJECT_NAME} ${EXTERNALS} ${SOURCES} ${PLATFORM_SOURCES})
 target_link_libraries( ${PROJECT_NAME} PRIVATE glfw glad_gl libcurl_static)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CURL_STATICLIB)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/Headers
+    ${CMAKE_BINARY_DIR}/Generated/Headers
+)
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRECOMPILED_HEADER})
 
