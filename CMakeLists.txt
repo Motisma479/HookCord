@@ -88,7 +88,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "Externals/GLAD/include"
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_options(${PROJECT_NAME} PRIVATE
         -static
         -static-libgcc
