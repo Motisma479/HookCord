@@ -86,8 +86,6 @@ jobs:
 
           - os: macos-latest
             build_type: ${{ inputs.buildType }}
-            c_compiler: clang
-            cpp_compiler: clang++
             generator: "Unix Makefiles"
             
           - os: windows-latest
@@ -100,7 +98,25 @@ jobs:
       uses: actions/checkout@v7
       with:
         submodules: recursive
-        
+
+    - name: Install Linux dependencies
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libwayland-dev \
+          wayland-protocols \
+          libx11-dev \
+          libxrandr-dev \
+          libxinerama-dev \
+          libxcursor-dev \
+          libxi-dev
+    
+    - name: Install GLAD dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r Externals/GLAD/requirements.txt
+
     - name: Set build directory
       id: vars
       shell: bash
