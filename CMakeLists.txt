@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(HookCord LANGUAGES C CXX DESCRIPTION "A small tool to interact with discord webhook system." VERSION 1.1.0) #add C because of dependencies
+project(HookCord LANGUAGES C CXX DESCRIPTION "A small tool to interact with discord webhook system." VERSION 1.2.0) #add C because of dependencies
 string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 add_compile_definitions(APP_NAME="${PROJECT_NAME}")
 
