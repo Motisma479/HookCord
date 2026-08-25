@@ -91,7 +91,7 @@ bool ToggleAutoStart(bool state)
             buffer,
             MAX_PATH
         );
-        std::wstring exePath(buffer, length);
+        std::filesystem::path exePath(buffer, buffer + length);
 
         //set the value
         result = RegSetValueExW(
@@ -100,7 +100,7 @@ bool ToggleAutoStart(bool state)
             0,
             REG_SZ,
             reinterpret_cast<const BYTE*>(exePath.c_str()),
-            static_cast<DWORD>((exePath.size() + 1) * sizeof(wchar_t))
+            static_cast<DWORD>((exePath.wstring().size() + 1) * sizeof(wchar_t))
         );
     }
     else
@@ -126,16 +126,29 @@ bool IsAutoStartEnable()
         return false;
     }
 
+    wchar_t buffer[MAX_PATH];
+    DWORD length = sizeof(buffer);
     LONG result = RegQueryValueExW(
         key,
         APP_NAME_WCHAR,
         nullptr,
         nullptr,
-        nullptr,
-        nullptr
+        reinterpret_cast<LPBYTE>(buffer),
+        &length
     );
-
     RegCloseKey(key);
 
-    return result == ERROR_SUCCESS;
+    if(result != ERROR_SUCCESS) return false;
+
+    length = (length/sizeof(wchar_t)-1); //it was in byte so x2
+    std::filesystem::path regPath(buffer, buffer + length);
+
+    length = GetModuleFileNameW(
+        nullptr,
+        buffer,
+        MAX_PATH
+    );
+    std::filesystem::path exePath(buffer, buffer + length);
+
+    return regPath == exePath;
 }
