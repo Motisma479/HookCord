@@ -18,6 +18,7 @@ public:
 
     void Load();
     void Save();
+    bool Evaluate(std::string& errMessage);
     bool shouldSave        = false;
     bool isAutoStart         = false;
 };

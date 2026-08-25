@@ -91,12 +91,15 @@ void App::Update()
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
 		ImGui::Begin("Main Window", NULL, flags);
-
+        
         //Menu bar
+        bool openAboutPopup = false;
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("About")) { openAboutPopup = true; }
+                ImGui::Separator();
 				if (ImGui::MenuItem("Close", "Alt+f4"))  { glfwSetWindowShouldClose(window, true); }
 				ImGui::EndMenu();
 			}
@@ -110,19 +113,62 @@ void App::Update()
                 }
 				ImGui::EndMenu();
 			}
+
 			ImGui::EndMenuBar();
 		}
+        if(openAboutPopup)
+        {
+            ImGui::OpenPopup("About");
+        }
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0f);
+        if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+        {
+            if (!ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                ImGui::CloseCurrentPopup();
+
+
+            ImGui::Text("HookCord");
+            ImGui::Text("A tool for interacting with Discord webhooks.");
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImGui::Text("Author: ");
+            ImGui::SameLine(75);
+            ImGui::TextLinkOpenURL("Motisma479","https://github.com/Motisma479");
+
+            ImGui::Spacing();
+
+            ImGui::Text("Version: ");
+            ImGui::SameLine(75);
+            ImGui::TextLinkOpenURL(HOOKCORD_VERSION,(std::string("https://github.com/Motisma479/HookCord/releases/tag/v")+HOOKCORD_VERSION).c_str());
+
+            ImGui::Spacing();
+            
+            ImGui::EndPopup();
+        }
+        ImGui::PopStyleVar();
 
 		ImGui::Text("Webhook URL:");
 		ImGui::SameLine(100);
 		if(ImGui::InputText("##webhookURLBox", &data.webhookURL))
+        {
             data.shouldSave = true;
+            data.editMessage = false;
+            data.idToEdit = "";
+            data.preMessageId = "";
+            isDataIncorrect = data.Evaluate(errMessage);
+        }
 		
         ImGui::Separator();
 
         if(ImGui::Checkbox("Specify name?", &data.specifyName))
         {
             data.shouldSave = true;
+            isDataIncorrect = data.Evaluate(errMessage);
         }
         if(data.specifyName)
         {
@@ -130,11 +176,13 @@ void App::Update()
             ImGui::SameLine(100);
             if(ImGui::InputText("##usernameBox", &data.username))
             data.shouldSave = true;
+            isDataIncorrect = data.Evaluate(errMessage);
         }
 		
         if(ImGui::Checkbox("Specify image?", &data.specifyImage))
         {
             data.shouldSave = true;
+            isDataIncorrect = data.Evaluate(errMessage);
         }
 
         if(data.specifyImage)
@@ -143,21 +191,30 @@ void App::Update()
             {
                 data.imageURL.clear();
                 data.shouldSave = true;
+                isDataIncorrect = data.Evaluate(errMessage);
             }
             if(!data.useMCImage)
             {
                 ImGui::Text("Image URL:");
                 ImGui::SameLine(100);
-                if(ImGui::InputText("##imageURLBox", &data.imageURL)) 		    
+                if(ImGui::InputText("##imageURLBox", &data.imageURL))
+                {
                     data.shouldSave = true;
-            } else {
+                    isDataIncorrect = data.Evaluate(errMessage);
+                }  
+            }
+            else
+            {
                 data.imageURL = "https://mc-api.io/render/face/" + data.username + "/java?size=1024";
             }
         }
 		
         ImGui::Separator();
         if(ImGui::Checkbox("Edit?", &data.editMessage))
+        {
             data.shouldSave = true;
+            isDataIncorrect = data.Evaluate(errMessage);
+        }
         if(data.editMessage)
         {
             ImGui::SameLine();
@@ -165,7 +222,10 @@ void App::Update()
             ImGui::SameLine();
             ImGui::SetNextItemWidth(200);
             if(ImGui::InputText("##MessageIdBox", &data.idToEdit))
+            {
                 data.shouldSave = true;
+                isDataIncorrect = data.Evaluate(errMessage);
+            }
         }
 
         ImGui::Text("Message:");
@@ -175,19 +235,37 @@ void App::Update()
             if(ImGui::Button("Get Old Message"))
             {
                 GetOldMessageForEdit();
+                data.shouldSave = true;
             }
         }
 		if(ImGui::InputTextMultiline("##MessageBox", &data.message, {435, 135}))
+        {
             data.shouldSave = true;
+            isDataIncorrect = data.Evaluate(errMessage);
+        }
+
+        ImGui::BeginDisabled(isDataIncorrect);
+        if(isDataIncorrect)ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(145, 0, 0, 255));
 
 		if(ImGui::Button("Send"))
 		{
             OnSendPress();
+            isDataIncorrect = data.Evaluate(errMessage);
+            if(isDataIncorrect)ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(145, 0, 0, 255));
 		}
+        
+        ImGui::EndDisabled();
+        if(isDataIncorrect)
+        {
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+            ImGui::SetTooltip(errMessage.c_str());
+        }
+        
         ImGui::SameLine();
         if(ImGui::Checkbox("TTS?", &data.tts))
             data.shouldSave = true;
-        
+
         ImGui::Text("Previous Id:");
 		ImGui::SameLine();
         ImGui::SetNextItemWidth(200);

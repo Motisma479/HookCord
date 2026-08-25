@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Version.hpp"
 #include <iostream>
 #include <string>
 

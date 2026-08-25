@@ -13,6 +13,8 @@ public:
     void SanitizeMessage();
 private:
     Data data;
+    bool isDataIncorrect = false;
+    std::string errMessage;
 
     //Network
     CURL* curl;

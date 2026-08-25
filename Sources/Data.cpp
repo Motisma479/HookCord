@@ -73,3 +73,42 @@ void Data::Save()
     data.write(idToEdit.data(), idToEdit.size());
     data.write(preMessageId.data(), preMessageId.size());
 }
+
+bool Data::Evaluate(std::string& errMessage)
+{
+    errMessage = "Invalid:";
+    bool result = false;
+
+    if(webhookURL.empty())
+    {
+        result = true;
+        errMessage += "\n\n\t* Webhook URL is empty.";
+    }   
+
+    if(specifyName && username.empty())
+    {
+        result = true;
+        errMessage += "\n\n\t* Username is empty.";
+    }
+
+    if(specifyImage && !useMCImage && imageURL.empty())
+    {
+        result = true;
+        errMessage += "\n\n\t* Image URL is empty.";
+    }
+
+    if(editMessage && idToEdit.empty())
+    {
+
+        result = true;
+        errMessage += "\n\n\t* Edit Message ID is empty.";
+    }
+
+    if(message.empty())
+    {
+        result = true;
+        errMessage += "\n\n\t* Message is empty.";
+    } 
+
+    return result;
+}
